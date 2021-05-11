@@ -70,7 +70,7 @@ class ExpReplay():
         max_mem = min(self.pointer, self.buffer_size)
         # Calculate the sampling probability through proportional prioritization
         sampling_probability = (
-            (self.losses+self.epsilon)**self.alpha)
+            (self.losses[:max_mem]+self.epsilon)**self.alpha)
         # Then normalize it
         sampling_probability /= sampling_probability.sum()
         # Then feed it to np.random

@@ -1,5 +1,5 @@
 import tensorflow as tf
-from replay_buffer import ExpReplay
+from dqn.replay_buffer import ExpReplay
 import numpy as np
 
 
@@ -119,11 +119,11 @@ class Agent():
         action = None
 
         if np.random.rand() <= self.epsilon:
-            action = np.random.choice(range(self.actions))
+            action = np.random.choice(list(range(self.actions)))
         else:
             actions = self.q_net.advantage(np.array([state]))
             action = np.argmax(actions)
-            return action
+        return action
 
     def update_mem(self, state, action, reward, next_state, done):
         """Add a sample to the experience replay
