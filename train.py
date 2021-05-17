@@ -39,7 +39,7 @@ env = RailEnv(
 
 obs, info = env.reset()
 
-env_renderer = RenderTool(env)
+#env_renderer = RenderTool(env)
 
 state_shape = normalize_observation(obs[0]).shape
 action_shape = (5,)
@@ -62,7 +62,7 @@ for episode in range(3000):
     try:
         # Initialize episode
         obs, info = env.reset(regenerate_rail=True, regenerate_schedule=True)
-        env_renderer = RenderTool(env)
+        #env_renderer = RenderTool(env)
         done = {i: False for i in range(0, num_agents)}
         done["__all__"] = False
         scores = 0
@@ -93,7 +93,7 @@ for episode in range(3000):
 
             next_obs, all_rewards, done, info = env.step(
                 action_dict)  # base env
-            env_renderer.render_env(show=True)
+            # env_renderer.render_env(show=True)
 
             # Update replay buffer and train agent
             for agent in env.get_agent_handles():
