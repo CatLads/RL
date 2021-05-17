@@ -42,7 +42,6 @@ class ExpReplay():
             done (bool): Wether next_state represents an ending state
         """
         idx = self.pointer % self.buffer_size
-
         self.state_mem[idx] = state
         self.action_mem[idx] = action
         self.reward_mem[idx] = reward

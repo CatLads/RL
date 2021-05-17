@@ -33,15 +33,15 @@ env = RailEnv(
     width=width,
     height=height,
     rail_generator=random_rail_generator,
-    obs_builder_object=TemperatureObservation(),
+    obs_builder_object=TemperatureObservation(tree_depth),
     number_of_agents=num_agents
 )
 
 obs, info = env.reset()
 
-env_renderer = RenderTool(env)
-
-state_shape = normalize_observation(obs[0]).shape
+#env_renderer = RenderTool(env)
+state_shape = normalize_observation(
+    obs[0], tree_depth, radius_observation).shape
 action_shape = (5,)
 agent007 = Agent(state_shape, 5)
 if (glob.glob("alternative_model.*") != []):
@@ -62,7 +62,7 @@ for episode in range(3000):
     try:
         # Initialize episode
         obs, info = env.reset(regenerate_rail=True, regenerate_schedule=True)
-        env_renderer = RenderTool(env)
+        #env_renderer = RenderTool(env)
         done = {i: False for i in range(0, num_agents)}
         done["__all__"] = False
         scores = 0
@@ -70,7 +70,8 @@ for episode in range(3000):
 
         for agent in env.get_agent_handles():
             if obs[agent] is not None:
-                agent_obs[agent] = normalize_observation(obs[agent])
+                agent_obs[agent] = normalize_observation(
+                    obs[agent], tree_depth, radius_observation)
                 agent_prev_obs[agent] = agent_obs[agent].copy()
 
         for step in range(max_steps - 1):
@@ -93,7 +94,7 @@ for episode in range(3000):
 
             next_obs, all_rewards, done, info = env.step(
                 action_dict)  # base env
-            env_renderer.render_env(show=True)
+            # env_renderer.render_env(show=True)
 
             # Update replay buffer and train agent
             for agent in env.get_agent_handles():
@@ -108,7 +109,8 @@ for episode in range(3000):
                 # Preprocess the new observations
                 if next_obs[agent] is not None:
 
-                    agent_obs[agent] = normalize_observation(next_obs[agent])
+                    agent_obs[agent] = normalize_observation(
+                        next_obs[agent], tree_depth, radius_observation)
 
                 scores += all_rewards[agent]
 
