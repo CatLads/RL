@@ -21,26 +21,28 @@ class DDDQN(tf.keras.Model):
         #       to highlight the power of DQN) they gave to the network multiple frames so that the network could learn
         #       about agent movements
 
-        self.c1 = tf.keras.layers.model.Conv2D(32,
+
+        input_shape = (1, *input_shape, 1)
+        self.c1 = tf.keras.layers.Conv2D(32,
                                                8,
                                                strides=(4, 4),
                                                padding="valid",
                                                activation="relu",
                                                input_shape=input_shape,
                                                data_format="channels_first")
-        self.c2 = tf.keras.layers.model.Conv2D(64,
+        self.c2 = tf.keras.layers.Conv2D(64,
                                                 4,
                                                 strides = (2, 2),
                                                 padding = "valid",
                                                 activation = "relu",
                                                 data_format = "channels_first")
-        self.c3 = tf.keras.layers.model.Conv2D(64,
+        self.c3 = tf.keras.layers.Conv2D(64,
                                                3,
                                                strides=(1, 1),
                                                padding="valid",
                                                activation="relu",
                                                data_format="channels_first")
-        self.model.add(Flatten())
+        self.model.add(tf.keras.layers.Flatten())
         self.d1 = tf.keras.layers.Dense(512, activation="relu")
 
         # v is used to estimate the value of a given state
