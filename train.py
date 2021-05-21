@@ -5,7 +5,7 @@ import numpy as np
 from temperature_observation import TemperatureObservation
 from flatland.envs.rail_generators import complex_rail_generator
 from flatland.envs.rail_env import RailEnv
-from dqn.CDDQN import CDDQN, Agent
+from lstm.DRQN import Agent
 from flatland.utils.rendertools import RenderTool
 from temperature_observation.utils import normalize_observation, format_action_prob
 
