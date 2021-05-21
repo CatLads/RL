@@ -3,16 +3,16 @@ from dqn.replay_buffer import ExpReplay
 import numpy as np
 
 
-class DDDQN(tf.keras.Model):
+class CDDQN(tf.keras.Model):
     """Implementation based on https://towardsdatascience.com/dueling-double-deep-q-learning-using-tensorflow-2-x-7bbbcec06a2a"""
 
-    def __init__(self, actions, input_shape):
+    def __init__(self, actions, batch_size, input_shape):
         """Create DQN network.
 
         Args:
             actions (int): Number of actions
         """
-        super(DDDQN, self).__init__()
+        super(CDDQN, self).__init__()
         self.actions = actions
         # TODO: Take a look here, they used LTSM to solve some known problems
         #       https://medium.com/emergent-future/simple-reinforcement-learning-with-tensorflow-part-8-asynchronous-actor-critic-agents-a3c-c88f72a5e9f2
@@ -21,29 +21,30 @@ class DDDQN(tf.keras.Model):
         #       to highlight the power of DQN) they gave to the network multiple frames so that the network could learn
         #       about agent movements
 
+        self.data_input_shape = (1, *input_shape)
+        print(self.data_input_shape)
 
-        input_shape = (1, *input_shape, 1)
         self.c1 = tf.keras.layers.Conv2D(32,
-                                               8,
-                                               strides=(4, 4),
-                                               padding="valid",
-                                               activation="relu",
-                                               input_shape=input_shape,
-                                               data_format="channels_first")
+                                         8,
+                                         strides=(4, 4),
+                                         padding="same",
+                                         activation="relu",
+                                         input_shape=self.data_input_shape,
+                                         )
         self.c2 = tf.keras.layers.Conv2D(64,
-                                                4,
-                                                strides = (2, 2),
-                                                padding = "valid",
-                                                activation = "relu",
-                                                data_format = "channels_first")
+                                         4,
+                                         strides=(2, 2),
+                                         padding="same",
+                                         activation="relu",
+                                         )
         self.c3 = tf.keras.layers.Conv2D(64,
-                                               3,
-                                               strides=(1, 1),
-                                               padding="valid",
-                                               activation="relu",
-                                               data_format="channels_first")
-        self.model.add(tf.keras.layers.Flatten())
-        self.d1 = tf.keras.layers.Dense(512, activation="relu")
+                                         3,
+                                         strides=(1, 1),
+                                         padding="same",
+                                         activation="relu",
+                                         )
+        self.flatten = tf.keras.layers.Flatten()
+        self.d1 = tf.keras.layers.Dense(256, activation="relu")
 
         # v is used to estimate the value of a given state
         self.v = tf.keras.layers.Dense(1, activation=None)
@@ -51,43 +52,45 @@ class DDDQN(tf.keras.Model):
         # a is used to compute the advantage of taking each action on a given state
         self.a = tf.keras.layers.Dense(self.actions, activation=None)
 
+    def call(self, input_data):
+        """Forward pass.
+        Input data is initially passed through 2 dense layers and then splitted
+        between V (estimate on how good the state is) and A (estimate on the advantage given by each action).
+        Output of V and A are aggregated as
+        Q = V + A - mean(a)
 
-def call(self, input_data):
-    """Forward pass.
-    Input data is initially passed through 2 dense layers and then splitted
-    between V (estimate on how good the state is) and A (estimate on the advantage given by each action).
-    Output of V and A are aggregated as
-       Q = V + A - mean(a)
+        Args:
+            input_data (np.array): State observation
 
-    Args:
-        input_data (np.array): State observation
+        Returns:
+            np.array: Q-value estimate for each action
+        """
+        x = self.c1(input_data)
+        x = self.c2(x)
+        x = self.c3(x)
+        x = self.flatten(x)
+        x = self.d1(x)
+        v = self.v(x)
+        a = self.a(x)
+        Q = v + (a - tf.math.reduce_mean(a, axis=1, keepdims=True))
+        return Q
 
-    Returns:
-        np.array: Q-value estimate for each action
-    """
-    x = self.c1(input_data)
-    x = self.c2(x)
-    x = self.c3(x)
-    x = self.d1(x)
-    v = self.v(x)
-    a = self.a(x)
-    Q = v + (a - tf.math.reduce_mean(a, axis=1, keepdims=True))
-    return Q
+    def advantage(self, state):
+        """Get the action estimate given the state
 
+        Args:
+            state (np.array): State observation
 
-def advantage(self, state):
-    """Get the action estimate given the state
-
-    Args:
-        state (np.array): State observation
-
-    Returns:
-        np.array: Estimate advantage per each action
-    """
-    x = self.d1(state)
-    x = self.d2(x)
-    a = self.a(x)
-    return a
+        Returns:
+            np.array: Estimate advantage per each action
+        """
+        x = self.c1(state)
+        x = self.c2(x)
+        x = self.c3(x)
+        x = self.flatten(x)
+        x = self.d1(x)
+        a = self.a(x)
+        return a
 
 
 class Agent():
@@ -118,14 +121,15 @@ class Agent():
 
         self.trainstep = 0
 
-        self.memory = ExpReplay(observation_shape)
 
         self.batch_size = 64
+        self.memory = ExpReplay(observation_shape, self.batch_size)
+
         self.loss = np.zeros((self.batch_size))
 
         # Deep network creation
-        self.q_net = DDDQN(self.actions, observation_shape)
-        self.target_net = DDDQN(self.actions, observation_shape)
+        self.q_net = CDDQN(self.actions, self.batch_size, observation_shape)
+        self.target_net = CDDQN(self.actions, self.batch_size, observation_shape)
         opt = tf.keras.optimizers.Adam(learning_rate=lr)
         self.q_net.compile(loss='mse', optimizer=opt)
         self.target_net.compile(loss='mse', optimizer=opt)

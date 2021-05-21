@@ -5,7 +5,7 @@ import numpy as np
 from temperature_observation import TemperatureObservation
 from flatland.envs.rail_generators import complex_rail_generator
 from flatland.envs.rail_env import RailEnv
-from dqn import DDDQN, Agent
+from dqn.CDDQN import CDDQN, Agent
 from flatland.utils.rendertools import RenderTool
 from temperature_observation.utils import normalize_observation, format_action_prob
 
@@ -127,7 +127,6 @@ for episode in range(3000):
         action_probs = action_count / np.sum(action_count)
         action_count = [1] * action_shape[0]
         step_counter += 1
-
         print(
             '\r🚂 Episode {}'
             '\t 🏆 Score: {:.3f}'
