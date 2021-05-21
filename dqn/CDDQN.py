@@ -6,7 +6,7 @@ import numpy as np
 class DDDQN(tf.keras.Model):
     """Implementation based on https://towardsdatascience.com/dueling-double-deep-q-learning-using-tensorflow-2-x-7bbbcec06a2a"""
 
-    def __init__(self, actions):
+    def __init__(self, actions, input_shape):
         """Create DQN network.
 
         Args:
@@ -33,14 +33,12 @@ class DDDQN(tf.keras.Model):
                                                 strides = (2, 2),
                                                 padding = "valid",
                                                 activation = "relu",
-                                                input_shape = input_shape,
                                                 data_format = "channels_first"))
         self.c3 = tf.keras.layers.model.Conv2D(64,
                                                3,
                                                strides=(1, 1),
                                                padding="valid",
                                                activation="relu",
-                                               input_shape=input_shape,
                                                data_format="channels_first"))
         self.model.add(Flatten())
         self.d1 = tf.keras.layers.Dense(512, activation="relu")
@@ -124,8 +122,8 @@ class Agent():
         self.loss = np.zeros((self.batch_size))
 
         # Deep network creation
-        self.q_net = DDDQN(self.actions)
-        self.target_net = DDDQN(self.actions)
+        self.q_net = DDDQN(self.actions, observation_shape)
+        self.target_net = DDDQN(self.actions, observation_shape)
         opt = tf.keras.optimizers.Adam(learning_rate=lr)
         self.q_net.compile(loss='mse', optimizer=opt)
         self.target_net.compile(loss='mse', optimizer=opt)
