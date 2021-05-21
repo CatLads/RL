@@ -27,19 +27,19 @@ class DDDQN(tf.keras.Model):
                                                padding="valid",
                                                activation="relu",
                                                input_shape=input_shape,
-                                               data_format="channels_first"))
+                                               data_format="channels_first")
         self.c2 = tf.keras.layers.model.Conv2D(64,
                                                 4,
                                                 strides = (2, 2),
                                                 padding = "valid",
                                                 activation = "relu",
-                                                data_format = "channels_first"))
+                                                data_format = "channels_first")
         self.c3 = tf.keras.layers.model.Conv2D(64,
                                                3,
                                                strides=(1, 1),
                                                padding="valid",
                                                activation="relu",
-                                               data_format="channels_first"))
+                                               data_format="channels_first")
         self.model.add(Flatten())
         self.d1 = tf.keras.layers.Dense(512, activation="relu")
 
