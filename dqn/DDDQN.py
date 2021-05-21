@@ -1,6 +1,7 @@
 import tensorflow as tf
-from replay_buffer import ExpReplay
+from dqn.replay_buffer import ExpReplay
 import numpy as np
+
 
 class DDDQN(tf.keras.Model):
     """Implementation based on https://towardsdatascience.com/dueling-double-deep-q-learning-using-tensorflow-2-x-7bbbcec06a2a"""
@@ -16,16 +17,16 @@ class DDDQN(tf.keras.Model):
         # TODO: Take a look here, they used LTSM to solve some known problems
         #       https://medium.com/emergent-future/simple-reinforcement-learning-with-tensorflow-part-8-asynchronous-actor-critic-agents-a3c-c88f72a5e9f2
         # TODO: Note that we should handle things a little differently, its probably better to exploit Convolutions
-        #       and also give to the network more than one observation at time. For the atari environment (the one used 
+        #       and also give to the network more than one observation at time. For the atari environment (the one used
         #       to highlight the power of DQN) they gave to the network multiple frames so that the network could learn
         #       about agent movements
-        
+
         self.d1 = tf.keras.layers.Dense(128, activation="relu")
         self.d2 = tf.keras.layers.Dense(128, activation="relu")
-        
+
         # v is used to estimate the value of a given state
         self.v = tf.keras.layers.Dense(1, activation=None)
-        
+
         # a is used to compute the advantage of taking each action on a given state
         self.a = tf.keras.layers.Dense(self.actions, activation=None)
 
@@ -63,9 +64,10 @@ class DDDQN(tf.keras.Model):
         a = self.a(x)
         return a
 
+
 class Agent():
     """Based on https://towardsdatascience.com/dueling-double-deep-q-learning-using-tensorflow-2-x-7bbbcec06a2a"""
-    
+
     def __init__(self, observation_shape, actions, gamma=0.99, replace=100, lr=0.001, epsilon_decay=1e-3):
         """Create a DDQN agent.
 
@@ -88,13 +90,14 @@ class Agent():
         self.min_epsilon = 0.01
         self.epsilon_decay = 1e-3
         self.replace = replace
-        
+
         self.trainstep = 0
-        
+
         self.memory = ExpReplay(observation_shape)
-        
+
         self.batch_size = 64
-        
+        self.loss = np.zeros((self.batch_size))
+
         # Deep network creation
         self.q_net = DDDQN(self.actions)
         self.target_net = DDDQN(self.actions)
@@ -106,7 +109,7 @@ class Agent():
         """Returns the action which is going to be taken using epsilon-greedy algorithm
         e.g. with probability epsilon choose a random action from the memory otherwise exploit
         the q-table.
-        
+
         Args:
             state (np.array): State observation
 
@@ -116,11 +119,11 @@ class Agent():
         action = None
 
         if np.random.rand() <= self.epsilon:
-            action = np.random.choice(range(self.actions))
+            action = np.random.choice(list(range(self.actions)))
         else:
             actions = self.q_net.advantage(np.array([state]))
             action = np.argmax(actions)
-            return action
+        return action
 
     def update_mem(self, state, action, reward, next_state, done):
         """Add a sample to the experience replay
@@ -144,7 +147,8 @@ class Agent():
         Returns:
             np.float: Epsilon value
         """
-        self.epsilon = self.epsilon - self.epsilon_decay if self.epsilon > self.min_epsilon else self.min_epsilon
+        self.epsilon = self.epsilon - \
+            self.epsilon_decay if self.epsilon > self.min_epsilon else self.min_epsilon
         return self.epsilon
 
     def train(self):
@@ -154,21 +158,30 @@ class Agent():
             if self.trainstep % self.replace == 0:
                 self.update_target()
 
-            states, actions, rewards, next_states, dones = self.memory.sample(self.batch_size)        
-            
-            target = self.q_net.predict(states) # get q-values estimate for each action
-            next_state_val = self.target_net.predict(next_states) # value of the next state
-            max_action = np.argmax(self.q_net.predict(next_states), axis=1) # best action for next state
+            states, actions, rewards, next_states, dones, batch = self.memory.sample(
+                self.batch_size)
+
+            # get q-values estimate for each action
+            target = self.q_net.predict(states)
+            next_state_val = self.target_net.predict(
+                next_states)  # value of the next state
+            max_action = np.argmax(self.q_net.predict(
+                next_states), axis=1)  # best action for next state
             batch_index = np.arange(self.batch_size, dtype=np.int32)
-            
+
             # update estimates of q-values based on next state estimate
             # TODO: Why do we need the `* dones` bit? Do we actually need it?
             q_target = np.copy(target)
-            q_target[batch_index, actions] = rewards + self.gamma * next_state_val[batch_index, max_action] * dones
-            
+            q_target[batch_index, actions] = rewards + self.gamma * \
+                next_state_val[batch_index, max_action] * dones
+
+            # TEchnically, q_target is our real value, while target is the predicted one. So, target-q_target should be a good estimate of loss.
+            # Is this loss?
+            self.memory.losses[batch] = np.sum(
+                np.abs(target - q_target), axis=1)
             # train the network
             self.q_net.train_on_batch(states, q_target)
-            
+
             self.update_epsilon()
             self.trainstep += 1
         except MemoryError:

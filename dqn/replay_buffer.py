@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class ExpReplay():
     """Implementation based on https://towardsdatascience.com/dueling-double-deep-q-learning-using-tensorflow-2-x-7bbbcec06a2a"""
 
@@ -15,14 +16,18 @@ class ExpReplay():
         self.buffer_size = buffer_size
 
         self.state_shape = state_shape
-        
-        self.state_mem = np.zeros((self.buffer_size, *self.state_shape), dtype=np.float32)
+        self.alpha = 0.6
+        self.epsilon = 0.01
+        self.state_mem = np.zeros(
+            (self.buffer_size, *self.state_shape), dtype=np.float32)
         self.action_mem = np.zeros((self.buffer_size), dtype=np.int32)
         # SIMMY: I removed , *action_shape cause we should just save one action per agent, not all of them
         self.reward_mem = np.zeros((self.buffer_size), dtype=np.float32)
-        self.next_state_mem = np.zeros((self.buffer_size, *state_shape), dtype=np.float32)
+        self.next_state_mem = np.zeros(
+            (self.buffer_size, *state_shape), dtype=np.float32)
         self.done_mem = np.zeros((self.buffer_size), dtype=np.bool)
-        
+        self.losses = np.zeros((self.buffer_size), dtype=np.float32)
+
         # pointer is used to access the memory
         self.pointer = 0
 
@@ -45,7 +50,7 @@ class ExpReplay():
 
         # TODO: Why 1 - int(done)?
         self.done_mem[idx] = 1 - int(done)
-        
+
         self.pointer += 1
 
     def sample(self, batch_size=64):
@@ -63,12 +68,18 @@ class ExpReplay():
 
         # Maximum index of the memory
         max_mem = min(self.pointer, self.buffer_size)
-        
-        batch = np.random.choice(max_mem, batch_size, replace=False)
+        # Calculate the sampling probability through proportional prioritization
+        sampling_probability = (
+            (self.losses[:max_mem]+self.epsilon)**self.alpha)
+        # Then normalize it
+        sampling_probability /= sampling_probability.sum()
+        # Then feed it to np.random
+        batch = np.random.choice(
+            max_mem, batch_size, replace=False, p=sampling_probability)
         states = self.state_mem[batch]
         actions = self.action_mem[batch]
         rewards = self.reward_mem[batch]
         next_states = self.next_state_mem[batch]
         dones = self.done_mem[batch]
-        
-        return states, actions, rewards, next_states, dones
+
+        return states, actions, rewards, next_states, dones, batch
