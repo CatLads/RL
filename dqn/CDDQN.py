@@ -202,7 +202,7 @@ class Agent():
             # TODO: Why do we need the `* dones` bit? Do we actually need it?
             q_target = np.copy(target)
             q_target[batch_index, actions] = rewards + self.gamma * \
-                                             next_state_val[batch_index, max_action] * dones
+                next_state_val[batch_index, max_action] * dones
 
             # TEchnically, q_target is our real value, while target is the predicted one. So, target-q_target should be a good estimate of loss.
             # Is this loss?
