@@ -172,8 +172,9 @@ class Agent():
             # update estimates of q-values based on next state estimate
             # TODO: Why do we need the `* dones` bit? Do we actually need it?
             q_target = np.copy(target)
+            print(next_state_val[batch_index, max_action] )
             q_target[batch_index, actions] = rewards + self.gamma * \
-                next_state_val[batch_index, max_action] * dones
+                                             next_state_val[batch_index, max_action] * dones
 
             # TEchnically, q_target is our real value, while target is the predicted one. So, target-q_target should be a good estimate of loss.
             # Is this loss?
@@ -190,12 +191,12 @@ class Agent():
 
     def save_model(self):
         """Save weights locally"""
-        self.q_net.save_weights("alternative_model")
-        self.target_net.save_weights("alternative_target_model")
+        self.q_net.save_weights("DDDQN_model")
+        self.target_net.save_weights("DDDQN_target_model")
         print("model saved")
 
     def load_model(self):
         """Load local weights"""
-        self.q_net.load_weights("alternative_model")
-        self.target_net.load_weights("alternative_target_model")
+        self.q_net.load_weights("DDDQN_model")
+        self.target_net.load_weights("DDDQN_target_model")
         print("model loaded")

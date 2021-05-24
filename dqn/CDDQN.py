@@ -1,6 +1,12 @@
 import tensorflow as tf
 from dqn.replay_buffer import ExpReplay
 import numpy as np
+from tensorflow.compat.v1 import ConfigProto
+from tensorflow.compat.v1 import InteractiveSession
+
+config = ConfigProto()
+config.gpu_options.allow_growth = True
+session = InteractiveSession(config=config)
 
 
 class CDDQN(tf.keras.Model):
@@ -14,22 +20,22 @@ class CDDQN(tf.keras.Model):
         """
         super(CDDQN, self).__init__()
         self.actions = actions
+        self.width, self.height = input_shape
+        self.index = self.width*self.height
         # TODO: Take a look here, they used LTSM to solve some known problems
         #       https://medium.com/emergent-future/simple-reinforcement-learning-with-tensorflow-part-8-asynchronous-actor-critic-agents-a3c-c88f72a5e9f2
         # TODO: Note that we should handle things a little differently, its probably better to exploit Convolutions
         #       and also give to the network more than one observation at time. For the atari environment (the one used
         #       to highlight the power of DQN) they gave to the network multiple frames so that the network could learn
         #       about agent movements
-
         self.data_input_shape = (1, *input_shape)
-        print(self.data_input_shape)
-
+        self.reshape = tf.keras.layers.Reshape(self.data_input_shape)
         self.c1 = tf.keras.layers.Conv2D(32,
                                          8,
                                          strides=(4, 4),
                                          padding="same",
                                          activation="relu",
-                                         input_shape=self.data_input_shape,
+                                         #input_shape=self.data_input_shape,
                                          )
         self.c2 = tf.keras.layers.Conv2D(64,
                                          4,
@@ -37,13 +43,11 @@ class CDDQN(tf.keras.Model):
                                          padding="same",
                                          activation="relu",
                                          )
-        self.c3 = tf.keras.layers.Conv2D(64,
-                                         3,
-                                         strides=(1, 1),
-                                         padding="same",
-                                         activation="relu",
-                                         )
         self.flatten = tf.keras.layers.Flatten()
+        self.tree_input = tf.keras.layers.Dense(
+            128, activation="relu"
+        )
+        self.tree_concatenate = tf.keras.layers.Concatenate()
         self.d1 = tf.keras.layers.Dense(256, activation="relu")
 
         # v is used to estimate the value of a given state
@@ -65,17 +69,21 @@ class CDDQN(tf.keras.Model):
         Returns:
             np.array: Q-value estimate for each action
         """
-        x = self.c1(input_data)
+        temperature_observation, tree_observation = tf.split(input_data, [self.index, (input_data.shape[1]-self.index)], axis=1)
+        print((temperature_observation.shape))
+        x = self.reshape(temperature_observation)
+        x = self.c1(x)
         x = self.c2(x)
-        x = self.c3(x)
         x = self.flatten(x)
-        x = self.d1(x)
+        tree_input = self.tree_input(tree_observation)
+        concatenate = self.tree_concatenate([x, tree_input])
+        x = self.d1(concatenate)
         v = self.v(x)
         a = self.a(x)
         Q = v + (a - tf.math.reduce_mean(a, axis=1, keepdims=True))
         return Q
 
-    def advantage(self, state):
+    def advantage(self, input_data):
         """Get the action estimate given the state
 
         Args:
@@ -84,11 +92,14 @@ class CDDQN(tf.keras.Model):
         Returns:
             np.array: Estimate advantage per each action
         """
-        x = self.c1(state)
+        temperature_observation, tree_observation = tf.split(input_data, [self.index, (input_data.shape[1]-self.index)], axis=1)
+        x = self.reshape(temperature_observation)
+        x = self.c1(x)
         x = self.c2(x)
-        x = self.c3(x)
         x = self.flatten(x)
-        x = self.d1(x)
+        tree_input = self.tree_input(tree_observation)
+        concatenate = self.tree_concatenate([x, tree_input])
+        x = self.d1(concatenate)
         a = self.a(x)
         return a
 
@@ -96,7 +107,7 @@ class CDDQN(tf.keras.Model):
 class Agent():
     """Based on https://towardsdatascience.com/dueling-double-deep-q-learning-using-tensorflow-2-x-7bbbcec06a2a"""
 
-    def __init__(self, observation_shape, actions, gamma=0.99, replace=100, lr=0.001, epsilon_decay=1e-3):
+    def __init__(self, observation_shape, actions, grid_shape, gamma=0.99, replace=100, lr=0.001, epsilon_decay=1e-3):
         """Create a DDQN agent.
 
         Args:
@@ -128,8 +139,8 @@ class Agent():
         self.loss = np.zeros((self.batch_size))
 
         # Deep network creation
-        self.q_net = CDDQN(self.actions, self.batch_size, observation_shape)
-        self.target_net = CDDQN(self.actions, self.batch_size, observation_shape)
+        self.q_net = CDDQN(self.actions, self.batch_size, grid_shape)
+        self.target_net = CDDQN(self.actions, self.batch_size, grid_shape)
         opt = tf.keras.optimizers.Adam(learning_rate=lr)
         self.q_net.compile(loss='mse', optimizer=opt)
         self.target_net.compile(loss='mse', optimizer=opt)
@@ -219,12 +230,12 @@ class Agent():
 
     def save_model(self):
         """Save weights locally"""
-        self.q_net.save_weights("alternative_model")
-        self.target_net.save_weights("alternative_target_model")
+        self.q_net.save_weights("CDDQN_model")
+        self.target_net.save_weights("CDDQN_target_model")
         print("model saved")
 
     def load_model(self):
         """Load local weights"""
-        self.q_net.load_weights("alternative_model")
-        self.target_net.load_weights("alternative_target_model")
+        self.q_net.load_weights("CDDQN_model")
+        self.target_net.load_weights("CDDQN_target_model")
         print("model loaded")

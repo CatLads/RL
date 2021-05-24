@@ -5,15 +5,16 @@ import numpy as np
 from temperature_observation import TemperatureObservation
 from flatland.envs.rail_generators import complex_rail_generator
 from flatland.envs.rail_env import RailEnv
-from lstm.DRQN import Agent
+from dqn.CDDQN import Agent
 from flatland.utils.rendertools import RenderTool
-from temperature_observation.utils import normalize_observation, format_action_prob
+from temperature_observation.utils import normalize_tree_observation, normalize_temperature_observation
+from temperature_observation.utils import format_action_prob
 
 
 seed = 69  # nice
-width = 10  # @param{type: "integer"}
-height = 10  # @param{type: "integer"}
-num_agents = 4  # @param{type: "integer"}
+width = 25 # @param{type: "integer"}
+height = 25  # @param{type: "integer"}
+num_agents = 5  # @param{type: "integer"}
 tree_depth = 2  # @param{type: "integer"}
 radius_observation = 10
 WINDOW_LENGTH = 22  # @param{type: "integer"}
@@ -33,17 +34,15 @@ env = RailEnv(
     width=width,
     height=height,
     rail_generator=random_rail_generator,
-    obs_builder_object=TemperatureObservation(),
+    obs_builder_object=TemperatureObservation(tree_depth),
     number_of_agents=num_agents
 )
 
 obs, info = env.reset()
-
 #env_renderer = RenderTool(env)
-
-state_shape = normalize_observation(obs[0]).shape
+state_shape = np.concatenate((normalize_temperature_observation(obs[0][0]).flatten(), normalize_tree_observation(obs[0][1], tree_depth, radius_observation))).shape
 action_shape = (5,)
-agent007 = Agent(state_shape, 5)
+agent007 = Agent(state_shape, 5, (width, height))
 if (glob.glob("alternative_model.*") != []):
     agent007.load_model()
 # Train for 300 episodes
@@ -70,7 +69,7 @@ for episode in range(3000):
 
         for agent in env.get_agent_handles():
             if obs[agent] is not None:
-                agent_obs[agent] = normalize_observation(obs[agent])
+                agent_obs[agent] = np.concatenate((normalize_temperature_observation(obs[agent][0]).flatten(), normalize_tree_observation(obs[agent][1], tree_depth, radius_observation)))
                 agent_prev_obs[agent] = agent_obs[agent].copy()
 
         for step in range(max_steps - 1):
@@ -108,7 +107,7 @@ for episode in range(3000):
                 # Preprocess the new observations
                 if next_obs[agent] is not None:
 
-                    agent_obs[agent] = normalize_observation(next_obs[agent])
+                    agent_obs[agent] = np.concatenate((normalize_temperature_observation(obs[agent][0]).flatten(), normalize_tree_observation(obs[agent][1], tree_depth, radius_observation)))
 
                 scores += all_rewards[agent]
 
