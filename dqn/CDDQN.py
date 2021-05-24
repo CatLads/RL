@@ -128,7 +128,7 @@ class Agent():
         self.gamma = gamma
         self.epsilon = 1.0
         self.min_epsilon = 0.01
-        self.epsilon_decay = .9999
+        self.epsilon_decay = 1 - 1e-5
         self.replace = replace
 
         self.trainstep = 0
