@@ -12,9 +12,9 @@ from temperature_observation.utils import format_action_prob
 
 
 seed = 69  # nice
-width = 25 # @param{type: "integer"}
-height = 25  # @param{type: "integer"}
-num_agents = 5  # @param{type: "integer"}
+width = 15 # @param{type: "integer"}
+height = 15  # @param{type: "integer"}
+num_agents = 3  # @param{type: "integer"}
 tree_depth = 2  # @param{type: "integer"}
 radius_observation = 10
 WINDOW_LENGTH = 22  # @param{type: "integer"}

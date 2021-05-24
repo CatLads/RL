@@ -49,7 +49,7 @@ class CDDQN(tf.keras.Model):
         )
         self.tree_concatenate = tf.keras.layers.Concatenate()
         self.d1 = tf.keras.layers.Dense(256, activation="relu")
-
+        self.d2 = tf.keras.layers.Dense(128, activation="relu")
         # v is used to estimate the value of a given state
         self.v = tf.keras.layers.Dense(1, activation=None)
 
@@ -70,7 +70,6 @@ class CDDQN(tf.keras.Model):
             np.array: Q-value estimate for each action
         """
         temperature_observation, tree_observation = tf.split(input_data, [self.index, (input_data.shape[1]-self.index)], axis=1)
-        print((temperature_observation.shape))
         x = self.reshape(temperature_observation)
         x = self.c1(x)
         x = self.c2(x)
@@ -78,6 +77,7 @@ class CDDQN(tf.keras.Model):
         tree_input = self.tree_input(tree_observation)
         concatenate = self.tree_concatenate([x, tree_input])
         x = self.d1(concatenate)
+        x = self.d2(x)
         v = self.v(x)
         a = self.a(x)
         Q = v + (a - tf.math.reduce_mean(a, axis=1, keepdims=True))
@@ -100,6 +100,7 @@ class CDDQN(tf.keras.Model):
         tree_input = self.tree_input(tree_observation)
         concatenate = self.tree_concatenate([x, tree_input])
         x = self.d1(concatenate)
+        x = self.d2(x)
         a = self.a(x)
         return a
 
@@ -107,7 +108,7 @@ class CDDQN(tf.keras.Model):
 class Agent():
     """Based on https://towardsdatascience.com/dueling-double-deep-q-learning-using-tensorflow-2-x-7bbbcec06a2a"""
 
-    def __init__(self, observation_shape, actions, grid_shape, gamma=0.99, replace=100, lr=0.001, epsilon_decay=1e-3):
+    def __init__(self, observation_shape, actions, grid_shape, gamma=0.99, replace=3, lr=0.001, epsilon_decay=1e-3):
         """Create a DDQN agent.
 
         Args:
@@ -127,7 +128,7 @@ class Agent():
         self.gamma = gamma
         self.epsilon = 1.0
         self.min_epsilon = 0.01
-        self.epsilon_decay = 1e-3
+        self.epsilon_decay = .9999
         self.replace = replace
 
         self.trainstep = 0
@@ -187,7 +188,7 @@ class Agent():
         Returns:
             np.float: Epsilon value
         """
-        self.epsilon = self.epsilon - \
+        self.epsilon = self.epsilon * \
                        self.epsilon_decay if self.epsilon > self.min_epsilon else self.min_epsilon
         return self.epsilon
 
@@ -195,7 +196,7 @@ class Agent():
         """Train the networks"""
         try:
             # update target network if needed
-            if self.trainstep % self.replace == 0:
+            if (self.trainstep % self.replace == 0) and self.trainstep>0:
                 self.update_target()
 
             states, actions, rewards, next_states, dones, batch = self.memory.sample(
@@ -232,10 +233,17 @@ class Agent():
         """Save weights locally"""
         self.q_net.save_weights("CDDQN_model")
         self.target_net.save_weights("CDDQN_target_model")
+        with open("epsilon", "w") as f:
+            f.write(str(self.epsilon))
         print("model saved")
 
     def load_model(self):
         """Load local weights"""
         self.q_net.load_weights("CDDQN_model")
         self.target_net.load_weights("CDDQN_target_model")
+        try:
+            with open("epsilon", "r") as f:
+                self.epsilon = float(f.read().strip())
+        except FileNotFoundError:
+            print("epsilon file not found")
         print("model loaded")
