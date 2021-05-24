@@ -1,13 +1,15 @@
+from configparser import ConfigParser
 import tensorflow as tf
 from dqn.replay_buffer import ExpReplay
 import numpy as np
 
+config_object = ConfigParser()
 
 class DDDQN(tf.keras.Model):
     """Implementation based on https://towardsdatascience.com/dueling-double-deep-q-learning-using-tensorflow-2-x-7bbbcec06a2a"""
 
     def __init__(self, actions):
-        """Create DQN network.
+        """Creates DQN network.
 
         Args:
             actions (int): Number of actions
@@ -21,43 +23,50 @@ class DDDQN(tf.keras.Model):
         #       to highlight the power of DQN) they gave to the network multiple frames so that the network could learn
         #       about agent movements
 
+    def network_setup(self):
+        """
+        Neural network structure is composed of 2 dense layers used create an internal representation of the observation.
+        Output of the dense layers is then fed in parallel to 2 different dense layers: V and A.
+        V is used to estimate how good is the observation.
+        A is used to estimate how good each action seems to be from the current state.        
+        """
         self.d1 = tf.keras.layers.Dense(128, activation="relu")
         self.d2 = tf.keras.layers.Dense(128, activation="relu")
-
-        # v is used to estimate the value of a given state
         self.v = tf.keras.layers.Dense(1, activation=None)
-
-        # a is used to compute the advantage of taking each action on a given state
         self.a = tf.keras.layers.Dense(self.actions, activation=None)
 
     def call(self, input_data):
         """Forward pass.
         Input data is initially passed through 2 dense layers and then splitted
-        between V (estimate on how good the state is) and A (estimate on the advantage given by each action).
+        between V and A.
         Output of V and A are aggregated as 
            Q = V + A - mean(a)
 
+                                  |---> [V] --|
+        [data] -> [d1] -> [d2] ---|           |---->[V + A - mean(A)]
+                                  |---> [A] --|
+
         Args:
-            input_data (np.array): State observation
+            input_data (tf.Tensor): State observation
 
         Returns:
-            np.array: Q-value estimate for each action
+            tf.Tensor: Q-value estimate for each action
         """
         x = self.d1(input_data)
         x = self.d2(x)
         v = self.v(x)
         a = self.a(x)
-        Q = v + (a - tf.math.reduce_mean(a, axis=1, keepdims=True))
-        return Q
+        q = v + (a - tf.math.reduce_mean(a, axis=1, keepdims=True))
+        return q
 
     def advantage(self, state):
         """Get the action estimate given the state
 
         Args:
-            state (np.array): State observation
+            state (tf.Tensor): State observation
 
         Returns:
-            np.array: Estimate advantage per each action
+            tf.Tensor: Estimate advantage for each action
         """
         x = self.d1(state)
         x = self.d2(x)
@@ -68,7 +77,8 @@ class DDDQN(tf.keras.Model):
 class Agent():
     """Based on https://towardsdatascience.com/dueling-double-deep-q-learning-using-tensorflow-2-x-7bbbcec06a2a"""
 
-    def __init__(self, observation_shape, actions, gamma=0.99, replace=100, lr=0.001, epsilon_decay=1e-3):
+    def __init__(self, observation_shape, actions, gamma=0.99, replace=100, lr=0.001, epsilon_decay=1e-3,
+                 decay_type="flat", initial_epsilon=1.0, min_epsilon=0.01, batch_size=64):
         """Create a DDQN agent.
 
         Args:
@@ -81,22 +91,26 @@ class Agent():
             lr (float, optional): Learning rate. Defaults to 0.001.
             epsilon_decay (float, optional): How much epsilon is decreased at each iteration. 
                                              Defaults to 1e-3.
+            decay_type (str, optional): Type of decay implemented, can be either flat, smooth.
+                                        Defaults to flat.
+            intial_epsilon (float, optional): Defaults to 1.0.
+            min_epsilon (float, optional): Defaults to 0.01.
+            batch_size (int, optional): Defaults to 64.
         """
         self.observation_shape = observation_shape
+        self.memory = ExpReplay(observation_shape)
         self.actions = actions
 
+        # hyperparameters input
         self.gamma = gamma
-        self.epsilon = 1.0
-        self.min_epsilon = 0.01
-        self.epsilon_decay = 1e-3
+        self.epsilon = initial_epsilon
+        self.min_epsilon = min_epsilon
+        self.epsilon_decay = epsilon_decay
         self.replace = replace
+        self.batch_size = batch_size
+        self.decay_type = decay_type if decay_type in ["flat", "smooth"] else "flat"
 
         self.trainstep = 0
-
-        self.memory = ExpReplay(observation_shape)
-
-        self.batch_size = 64
-        self.loss = np.zeros((self.batch_size))
 
         # Deep network creation
         self.q_net = DDDQN(self.actions)
@@ -121,6 +135,7 @@ class Agent():
         if np.random.rand() <= self.epsilon:
             action = np.random.choice(list(range(self.actions)))
         else:
+            # FIXME: Why np.array([state])?
             actions = self.q_net.advantage(np.array([state]))
             action = np.argmax(actions)
         return action
@@ -147,15 +162,23 @@ class Agent():
         Returns:
             np.float: Epsilon value
         """
-        self.epsilon = self.epsilon - \
-            self.epsilon_decay if self.epsilon > self.min_epsilon else self.min_epsilon
+        decay_fn = {
+            "flat": lambda e: e - self.epsilon_decay,
+            "smooth": lambda e: e * (1 - self.epsilon_decay)
+        }
+
+        if self.epsilon > self.min_epsilon:
+            self.epsilon = decay_fn[self.decay_type](self.epsilon)  
+        else:
+            self.epsilon = self.min_epsilon
+        
         return self.epsilon
 
     def train(self):
         """Train the networks"""
         try:
-            # update target network if needed
-            if self.trainstep % self.replace == 0:
+            # update target every replace iterations
+            if self.trainstep > 0 and self.trainstep % self.replace == 0:
                 self.update_target()
 
             states, actions, rewards, next_states, dones, batch = self.memory.sample(
@@ -163,23 +186,19 @@ class Agent():
 
             # get q-values estimate for each action
             target = self.q_net.predict(states)
-            next_state_val = self.target_net.predict(
-                next_states)  # value of the next state
-            max_action = np.argmax(self.q_net.predict(
-                next_states), axis=1)  # best action for next state
+            # value of the next state
+            next_state_val = self.target_net.predict(next_states)
+            # best action for next state
+            max_action = np.argmax(self.q_net.predict(next_states), axis=1)
             batch_index = np.arange(self.batch_size, dtype=np.int32)
 
             # update estimates of q-values based on next state estimate
-            # TODO: Why do we need the `* dones` bit? Do we actually need it?
+            # FIXME: Why do we need the `* dones` bit? Do we actually need it?
             q_target = np.copy(target)
-            print(next_state_val[batch_index, max_action] )
             q_target[batch_index, actions] = rewards + self.gamma * \
                                              next_state_val[batch_index, max_action] * dones
 
-            # TEchnically, q_target is our real value, while target is the predicted one. So, target-q_target should be a good estimate of loss.
-            # Is this loss?
-            self.memory.losses[batch] = np.sum(
-                np.abs(target - q_target), axis=1)
+            self.memory.losses[batch] = np.sum(np.abs(target - q_target), axis=1)
             # train the network
             self.q_net.train_on_batch(states, q_target)
 
@@ -189,14 +208,43 @@ class Agent():
             # not enough samples in memory, wait to train
             pass
 
-    def save_model(self):
-        """Save weights locally"""
-        self.q_net.save_weights("DDDQN_model")
-        self.target_net.save_weights("DDDQN_target_model")
+    def save_model(self, name="DDDQN"):
+        """Save the network models
+
+        Args:
+            name (str, optional): Prefix to each model. Defaults to "DDDQN".
+        """
+        self.q_net.save("%s_qnet_model" % name)
+        self.target_net.save("%s_targetnet_model" % name)
+
+        # save hyperparameters
+        config_object["CONFIG"] = {
+            "gamma": self.gamma
+            "epsilon": self.initial_epsilon
+            "min_epsilon": self.min_epsilon
+            "epsilon_decay": self.epsilon_decay
+            "replace": self.replace
+            "batch_size": self.batch_size
+            "decay_type": self.decay_type
+        }
+        with open("%s_config.ini" % name, "w") as f:
+            config_object.write(f)
+
         print("model saved")
 
-    def load_model(self):
+    def load_model(self, name="DDDQN"):
         """Load local weights"""
-        self.q_net.load_weights("DDDQN_model")
-        self.target_net.load_weights("DDDQN_target_model")
+        self.q_net = tf.keras.models.load_model("%s_qnet_model" % name)
+        self.target_net = tf.keras.models.load_model("%s_targetnet_model" % name)
+        
+        # load hyperparameters
+        config = config_object.read("%s_config.ini" % name)["CONFIG"]
+        self.gamma = config["gamma"]
+        self.epsilon = config["initial_epsilon"]
+        self.min_epsilon = config["min_epsilon"]
+        self.epsilon_decay = config["epsilon_decay"]
+        self.replace = config["replace"]
+        self.batch_size = config["batch_size"]
+        self.decay_type = config["decay_type"]
+        
         print("model loaded")
