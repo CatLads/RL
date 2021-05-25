@@ -4,6 +4,7 @@ from tensorflow.compat.v1 import ConfigProto
 from tensorflow.compat.v1 import InteractiveSession
 from configparser import ConfigParser
 
+
 config = ConfigProto()
 config.gpu_options.allow_growth = True
 session = InteractiveSession(config=config)
@@ -85,6 +86,6 @@ class DDDQN(tf.keras.Model):
         Returns:
             tf.Tensor: Estimate advantage for each action
         """
-        x = self._process_input(input_data)
+        x = self._process_input(state)
         a = self.a(x)
         return a
