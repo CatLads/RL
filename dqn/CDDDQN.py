@@ -5,7 +5,7 @@ import numpy as np
 
 
 class CDDDQN(DDDQN):
-    def __init__(self, actions, batch_size, input_shape):
+    def __init__(self, actions, input_shape):
         """Create a DQN network using convolutions.
 
         Args:
@@ -13,7 +13,7 @@ class CDDDQN(DDDQN):
         """
         self.width, self.height = input_shape
         self.index = self.width*self.height
-        super(CDDQN, self).__init__(actions)
+        super().__init__(actions)
 
     def network_setup(self):
         """
@@ -24,12 +24,13 @@ class CDDDQN(DDDQN):
         Remaining layers are the same.
         """
         # temperature pipeline
+        self.reshape = tf.keras.layers.Reshape((1, self.width, self.height))
         self.c1_temp = tf.keras.layers.Conv2D(32, 
                                               8,
                                               strides=(4, 4),
                                               padding="same",
                                               activation="relu")
-        self.c1_temp = tf.keras.layers.Conv2D(64,
+        self.c2_temp = tf.keras.layers.Conv2D(64,
                                               4,
                                               strides=(2, 2),
                                               padding="same",
@@ -60,20 +61,19 @@ class CDDDQN(DDDQN):
                                                              [self.index, (input_data.shape[1] - self.index)], 
                                                              axis=1)
         temp_x = self.reshape(temperature_observation)
-        temp_x = self.c1(temp_x)
-        temp_x = self.c2(temp_x)
+        temp_x = self.c1_temp(temp_x)
+        temp_x = self.c2_temp(temp_x)
         temp_x = self.flatten(temp_x)
 
         tree_x = self.tree_input(tree_observation)
-        
-        return self.tree_concatenate([x, tree_input])
+        return self.concatenate([temp_x, tree_x])
 
     def call(self, input_data):
         """Forward pass.
 
-                  |---> [conv1] -> [conv2] -> [flatten] -|  |->[V]--|
-        [data] ---|                                      |--|       |->[V + A - mean(A)]
-                  |---> [dense layer] -------------------|  |->[A]--|
+                |-> [reshape] -> [conv1] -> [conv2] -> [flatten] -| |->[V]-|
+        [data] -|                                                 |-|      |->[V + A - mean(A)]
+                |-> [dense layer] --------------------------------| |->[A]-|
 
         Args:
             input_data (tf.Tensor): State observation

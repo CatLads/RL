@@ -44,7 +44,7 @@ action_shape = (5,)
 
 # specify the algorithm to use and every parameter
 agent007 = Agent(state_shape, 
-                 actions, 
+                 action_shape[0], 
                  (width, height), 
                  gamma=0.99, 
                  replace=100, 

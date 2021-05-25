@@ -5,6 +5,8 @@ from dqn.CDDDQN import CDDDQN
 from dqn.DDDQN import DDDQN
 import numpy as np
 
+config_object = ConfigParser()
+
 class Agent():
     """Based on https://towardsdatascience.com/dueling-double-deep-q-learning-using-tensorflow-2-x-7bbbcec06a2a"""
 
@@ -155,13 +157,13 @@ class Agent():
         Args:
             name (str, optional): Prefix to each model. Defaults to "DDDQN".
         """
-        self.q_net.save("%s_qnet_model" % self.method)
-        self.target_net.save("%s_targetnet_model" % self.method)
+        self.q_net.save_weights("%s_qnet_model" % self.method)
+        self.target_net.save_weights("%s_targetnet_model" % self.method)
 
         # save hyperparameters
         config_object["CONFIG"] = {
             "gamma": self.gamma,
-            "epsilon": self.initial_epsilon,
+            "epsilon": self.epsilon,
             "min_epsilon": self.min_epsilon,
             "epsilon_decay": self.epsilon_decay,
             "replace": self.replace,
@@ -176,13 +178,13 @@ class Agent():
 
     def load_model(self):
         """Load local weights"""
-        self.q_net = tf.keras.models.load_model("%s_qnet_model" % self.method)
-        self.target_net = tf.keras.models.load_model("%s_targetnet_model" % self.method)
+        self.q_net.load_weights("%s_qnet_model" % self.method)
+        self.target_net.load_weights("%s_targetnet_model" % self.method)
         
         # load hyperparameters
         config = config_object.read("%s_config.ini" % self.method)["CONFIG"]
         self.gamma = config["gamma"]
-        self.epsilon = config["initial_epsilon"]
+        self.epsilon = config["epsilon"]
         self.min_epsilon = config["min_epsilon"]
         self.epsilon_decay = config["epsilon_decay"]
         self.replace = config["replace"]
