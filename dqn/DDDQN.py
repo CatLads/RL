@@ -2,9 +2,7 @@ import tensorflow as tf
 import numpy as np
 from tensorflow.compat.v1 import ConfigProto
 from tensorflow.compat.v1 import InteractiveSession
-
-
-config_object = ConfigParser()
+from configparser import ConfigParser
 
 config = ConfigProto()
 config.gpu_options.allow_growth = True
