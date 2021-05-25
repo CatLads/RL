@@ -149,37 +149,38 @@ class Agent():
             # not enough samples in memory, wait to train
             pass
 
-    def save_model(self, name="DDDQN"):
+    def save_model(self):
         """Save the network models
 
         Args:
             name (str, optional): Prefix to each model. Defaults to "DDDQN".
         """
-        self.q_net.save("%s_qnet_model" % name)
-        self.target_net.save("%s_targetnet_model" % name)
+        self.q_net.save("%s_qnet_model" % self.method)
+        self.target_net.save("%s_targetnet_model" % self.method)
 
         # save hyperparameters
         config_object["CONFIG"] = {
-            "gamma": self.gamma
-            "epsilon": self.initial_epsilon
-            "min_epsilon": self.min_epsilon
-            "epsilon_decay": self.epsilon_decay
-            "replace": self.replace
-            "batch_size": self.batch_size
-            "decay_type": self.decay_type
+            "gamma": self.gamma,
+            "epsilon": self.initial_epsilon,
+            "min_epsilon": self.min_epsilon,
+            "epsilon_decay": self.epsilon_decay,
+            "replace": self.replace,
+            "batch_size": self.batch_size,
+            "decay_type": self.decay_type,
+            "method": self.method
         }
-        with open("%s_config.ini" % name, "w") as f:
+        with open("%s_config.ini" % self.method, "w") as f:
             config_object.write(f)
 
         print("model saved")
 
-    def load_model(self, name="DDDQN"):
+    def load_model(self):
         """Load local weights"""
-        self.q_net = tf.keras.models.load_model("%s_qnet_model" % name)
-        self.target_net = tf.keras.models.load_model("%s_targetnet_model" % name)
+        self.q_net = tf.keras.models.load_model("%s_qnet_model" % self.method)
+        self.target_net = tf.keras.models.load_model("%s_targetnet_model" % self.method)
         
         # load hyperparameters
-        config = config_object.read("%s_config.ini" % name)["CONFIG"]
+        config = config_object.read("%s_config.ini" % self.method)["CONFIG"]
         self.gamma = config["gamma"]
         self.epsilon = config["initial_epsilon"]
         self.min_epsilon = config["min_epsilon"]
@@ -187,5 +188,6 @@ class Agent():
         self.replace = config["replace"]
         self.batch_size = config["batch_size"]
         self.decay_type = config["decay_type"]
+        self.method = config["method"]
         
         print("model loaded")
