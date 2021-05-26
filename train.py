@@ -10,6 +10,7 @@ from flatland.envs.agent_utils import RailAgentStatus
 from flatland.utils.rendertools import RenderTool
 from temperature_observation.utils import normalize_tree_observation, normalize_temperature_observation
 from temperature_observation.utils import format_action_prob
+import wandb
 
 seed = 69  # nice
 width = 15
@@ -17,6 +18,8 @@ height = 15
 num_agents = 3
 tree_depth = 2
 radius_observation = 10
+wandb.init(project="flatlands")
+config = wandb.config
 
 random_rail_generator = complex_rail_generator(
     nr_start_goal=10, # number of start and end goals
@@ -150,6 +153,12 @@ for episode in range(3000):
         action_probs = action_count / np.sum(action_count)
         action_count = [1] * action_shape[0]
         step_counter += 1
+        wandb.log({
+            "normalized_score": normalized_score,
+            "smoothed_normalized_score": smoothed_normalized_score,
+            "completion": 100*completion,
+            "smoothed_completion": 100*smoothed_completion
+        })
         print(
             '\r🚂 Episode {}'
             '\t 🏆 Score: {:.3f}'
