@@ -62,7 +62,7 @@ class Agent():
         self.q_net.compile(loss='mse', optimizer=opt)
         self.target_net.compile(loss='mse', optimizer=opt)
 
-    def act(self, state):
+    def act(self, state, legal_moves):
         """Returns the action which is going to be taken using epsilon-greedy algorithm
         e.g. with probability epsilon choose a random action from the memory otherwise exploit
         the q-table.
@@ -76,10 +76,13 @@ class Agent():
         action = None
 
         if np.random.rand() <= self.epsilon:
-            action = np.random.choice(list(range(self.actions)))
+            probabilities = legal_moves/(np.sum(legal_moves))
+            action = np.random.choice(list(range(self.actions)), p=probabilities)
         else:
             # FIXME: Why np.array([state])?
             actions = self.q_net.advantage(np.array([state]))
+            actions = actions.numpy()[0]
+            actions[legal_moves == 0] = -1e4
             action = np.argmax(actions)
         return action
 

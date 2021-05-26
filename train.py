@@ -4,8 +4,9 @@ import os
 import numpy as np
 from temperature_observation import TemperatureObservation
 from flatland.envs.rail_generators import complex_rail_generator
-from flatland.envs.rail_env import RailEnv
+from flatland.envs.rail_env import RailEnv, RailEnvActions
 from dqn.agent import Agent
+from flatland.envs.agent_utils import RailAgentStatus
 from flatland.utils.rendertools import RenderTool
 from temperature_observation.utils import normalize_tree_observation, normalize_temperature_observation
 from temperature_observation.utils import format_action_prob
@@ -89,7 +90,6 @@ for episode in range(3000):
                 norm_tree = normalize_tree_observation(obs[agent][1], tree_depth, radius_observation)
                 agent_obs[agent] = np.concatenate((norm_temp, norm_tree))
                 agent_prev_obs[agent] = agent_obs[agent].copy()
-
         for step in range(max_steps - 1):
             actions = {}
             agents_obs = {}
@@ -97,7 +97,11 @@ for episode in range(3000):
             for agent in env.get_agent_handles():
                 if info['action_required'][agent]:
                     update_values[agent] = True
-                    action = agent007.act(agent_obs[agent])
+                    legal_moves = np.array([1 for i in range(0, 5)])
+                    for action in RailEnvActions:
+                        if info["status"][agent] == RailAgentStatus.ACTIVE:
+                            legal_moves[int(action)] = int(env._check_action_on_agent(action, env.agents[agent])[-1])
+                    action = agent007.act(agent_obs[agent], legal_moves)
 
                     action_count[action] += 1
                 else:
@@ -106,8 +110,9 @@ for episode in range(3000):
                     update_values[agent] = False
                     action = 0
                 action_dict.update({agent: action})
-
             next_obs, all_rewards, done, info = env.step(action_dict)
+
+
             # env_renderer.render_env(show=True)
 
             # Update replay buffer and train agent
