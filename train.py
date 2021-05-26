@@ -18,7 +18,7 @@ height = 15
 num_agents = 3
 tree_depth = 2
 radius_observation = 10
-wandb.init(project="flatlands")
+wandb.init(project='flatlands', entity='fatlads')
 config = wandb.config
 
 random_rail_generator = complex_rail_generator(
