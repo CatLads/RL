@@ -140,7 +140,6 @@ for episode in range(3000):
             "smoothed_completion": 100 * smoothed_completion
         })
 
-        wandb.
         print(
             '\r🚂 Episode {}'
             '\t 🏆 Score: {:.3f}'
