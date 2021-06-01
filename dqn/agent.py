@@ -144,9 +144,8 @@ class Agent():
             q_target[batch_index, actions] = rewards + self.gamma * \
                                              next_state_val[batch_index, max_action] * dones
 
-            self.memory.losses[batch] = np.sum(np.abs(target - q_target), axis=1)
             # train the network
-            self.q_net.train_on_batch(states, q_target)
+            self.memory.losses[batch] = self.q_net.train_on_batch(states, q_target)
 
             self.update_epsilon()
             self.trainstep += 1
