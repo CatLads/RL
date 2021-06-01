@@ -11,7 +11,7 @@ from temperature_observation.utils import normalize_observation, format_action_p
 import wandb
 
 
-wandb.init(project='flatlands', entity='fatlads')
+wandb.init(project='flatlands', entity='fatlads', tags=['dddqn_added_channels', "dddqn", "prio_exp_rpl", "temp"])
 config = wandb.config
 seed = 69  # nice
 width = 15  # @param{type: "integer"}
