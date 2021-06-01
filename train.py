@@ -45,7 +45,7 @@ normalized_temp = normalize_temperature_observation(obs[0][0]).flatten()
 normalized_tree = normalize_tree_observation(obs[0][1], tree_depth, radius_observation)
 state_shape = np.concatenate((normalized_temp, normalized_tree)).shape
 action_shape = (5,)
-
+method = "cdddqn"
 # specify the algorithm to use and every parameter
 agent007 = Agent(state_shape, 
                  action_shape[0], 
@@ -58,10 +58,10 @@ agent007 = Agent(state_shape,
                  initial_epsilon=1.0, 
                  min_epsilon=0.01, 
                  batch_size=64, 
-                 method="cdddqn")
+                 method=method)
 
 # FIXME: Does this actually work?
-if glob.glob("alternative_model.*") != []:
+if glob.glob(f"{method}*") != []:
     agent007.load_model()
 
 saving_interval = 50
