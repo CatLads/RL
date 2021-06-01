@@ -177,11 +177,9 @@ class Agent():
 
             # TEchnically, q_target is our real value, while target is the predicted one. So, target-q_target should be a good estimate of loss.
             # Is this loss?
-            self.memory.losses[batch] = np.sum(
-                np.abs(target - q_target), axis=1)
+            # Is this loss?
             # train the network
-            self.q_net.train_on_batch(states, q_target)
-
+            self.memory.losses[batch] = self.q_net.train_on_batch(states, q_target)
             self.update_epsilon()
             self.trainstep += 1
         except MemoryError:

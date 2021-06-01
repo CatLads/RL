@@ -8,12 +8,15 @@ from flatland.envs.rail_env import RailEnv
 from dqn import DDDQN, Agent
 from flatland.utils.rendertools import RenderTool
 from temperature_observation.utils import normalize_observation, format_action_prob
+import wandb
 
 
+wandb.init(project='flatlands', entity='fatlads')
+config = wandb.config
 seed = 69  # nice
-width = 10  # @param{type: "integer"}
-height = 10  # @param{type: "integer"}
-num_agents = 4  # @param{type: "integer"}
+width = 15  # @param{type: "integer"}
+height = 15  # @param{type: "integer"}
+num_agents = 3  # @param{type: "integer"}
 tree_depth = 2  # @param{type: "integer"}
 radius_observation = 10
 WINDOW_LENGTH = 22  # @param{type: "integer"}
@@ -130,6 +133,14 @@ for episode in range(3000):
         action_count = [1] * action_shape[0]
         step_counter += 1
 
+        wandb.log({
+            "normalized_score": normalized_score,
+            "smoothed_normalized_score": smoothed_normalized_score,
+            "completion": 100 * completion,
+            "smoothed_completion": 100 * smoothed_completion
+        })
+
+        wandb.
         print(
             '\r🚂 Episode {}'
             '\t 🏆 Score: {:.3f}'

@@ -4,7 +4,7 @@ import numpy as np
 class ExpReplay():
     """Implementation based on https://towardsdatascience.com/dueling-double-deep-q-learning-using-tensorflow-2-x-7bbbcec06a2a"""
 
-    def __init__(self, state_shape, buffer_size=1000000):
+    def __init__(self, state_shape, buffer_size=10000):
         """
         Replay buffer
         The buffer will contain tuples of the form (state, action, reward, next_state, done).
