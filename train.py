@@ -12,11 +12,12 @@ import wandb
 
 
 wandb.init(project='flatlands', entity='fatlads', tags=['dddqn_added_channels', "dddqn", "prio_exp_rpl", "temp"])
+wandb.run.name = "single agent"
 config = wandb.config
 seed = 69  # nice
-width = 15  # @param{type: "integer"}
-height = 15  # @param{type: "integer"}
-num_agents = 3  # @param{type: "integer"}
+width = 10  # @param{type: "integer"}
+height = 10  # @param{type: "integer"}
+num_agents = 1  # @param{type: "integer"}
 tree_depth = 2  # @param{type: "integer"}
 radius_observation = 10
 WINDOW_LENGTH = 22  # @param{type: "integer"}
