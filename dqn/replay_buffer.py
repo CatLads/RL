@@ -74,7 +74,7 @@ class ExpReplay():
         sampling_probability /= sampling_probability.sum()
         # Then feed it to np.random
         batch = np.random.choice(
-            max_mem, batch_size, replace=False, p=sampling_probability)
+            max_mem, batch_size, replace=False)#, p=sampling_probability)
         states = self.state_mem[batch]
         actions = self.action_mem[batch]
         rewards = self.reward_mem[batch]

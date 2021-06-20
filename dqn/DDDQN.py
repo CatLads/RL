@@ -188,12 +188,12 @@ class Agent():
 
     def save_model(self):
         """Save weights locally"""
-        self.q_net.save_weights("alternative_model")
-        self.target_net.save_weights("alternative_target_model")
+        self.q_net.save_weights("multi_tree_and_temp_no_prio_real_model")
+        self.target_net.save_weights("multi_tree_and_temp_no_prio_real_target_model")
         print("model saved")
 
     def load_model(self):
         """Load local weights"""
-        self.q_net.load_weights("alternative_model")
-        self.target_net.load_weights("alternative_target_model")
+        self.q_net.load_weights("multi_tree_and_temp_no_prio_real_model")
+        self.target_net.load_weights("multi_tree_and_temp_no_prio_real_target_model")
         print("model loaded")

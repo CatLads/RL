@@ -11,13 +11,13 @@ from temperature_observation.utils import normalize_observation, format_action_p
 import wandb
 
 
-wandb.init(project='flatlands', entity='fatlads', tags=['dddqn_added_channels', "dddqn", "prio_exp_rpl", "temp"])
+wandb.init(project='flatlands', entity='fatlads', tags=['dddqn_added_channels', "dddqn", "no_prio", "single"])
 wandb.run.name = "single agent"
 config = wandb.config
 seed = 69  # nice
-width = 10  # @param{type: "integer"}
-height = 10  # @param{type: "integer"}
-num_agents = 1  # @param{type: "integer"}
+width = 15  # @param{type: "integer"}
+height = 15  # @param{type: "integer"}
+num_agents = 3# @param{type: "integer"}
 tree_depth = 2  # @param{type: "integer"}
 radius_observation = 10
 WINDOW_LENGTH = 22  # @param{type: "integer"}
@@ -48,7 +48,7 @@ state_shape = normalize_observation(
     obs[0], tree_depth, radius_observation).shape
 action_shape = (5,)
 agent007 = Agent(state_shape, 5)
-if (glob.glob("alternative_model.*") != []):
+if (glob.glob("testalternative_model.*") != []):
     agent007.load_model()
 # Train for 300 episodes
 saving_interval = 50
@@ -62,7 +62,7 @@ agent_prev_obs = [None] * num_agents
 agent_prev_action = [2] * num_agents
 update_values = [False] * num_agents
 
-for episode in range(3000):
+for episode in range(1500):
     try:
         # Initialize episode
         obs, info = env.reset(regenerate_rail=True, regenerate_schedule=True)
