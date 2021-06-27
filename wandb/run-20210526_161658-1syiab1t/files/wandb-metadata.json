@@ -1,0 +1,22 @@
+{
+    "os": "macOS-10.16-x86_64-i386-64bit",
+    "python": "3.8.5",
+    "heartbeatAt": "2021-05-26T14:17:03.072921",
+    "startedAt": "2021-05-26T14:16:58.091531",
+    "docker": null,
+    "cpu_count": 12,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "train.py",
+    "codePath": "train.py",
+    "git": {
+        "remote": "git@github.com:CatLads/RL.git",
+        "commit": "2afd5298de261061d57a981658e81897fee05f05"
+    },
+    "email": "sim.montali@gmail.com",
+    "root": "/Users/simone/UniBO/Lab/RL/RL",
+    "host": "scossa.local",
+    "username": "simone",
+    "executable": "/opt/anaconda3/bin/python"
+}

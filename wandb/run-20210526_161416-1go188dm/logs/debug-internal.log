@@ -1,0 +1,66 @@
+2021-05-26 16:14:17,723 INFO    MainThread:99126 [internal.py:wandb_internal():88] W&B internal server running at pid: 99126, started at: 2021-05-26 16:14:17.722829
+2021-05-26 16:14:17,724 INFO    WriterThread:99126 [datastore.py:open_for_write():77] open: /Users/simone/UniBO/Lab/RL/RL/wandb/run-20210526_161416-1go188dm/run-1go188dm.wandb
+2021-05-26 16:14:17,725 DEBUG   HandlerThread:99126 [handler.py:handle_request():121] handle_request: check_version
+2021-05-26 16:14:17,726 DEBUG   SenderThread:99126 [sender.py:send():176] send: header
+2021-05-26 16:14:17,727 DEBUG   SenderThread:99126 [sender.py:send_request():186] send_request: check_version
+2021-05-26 16:14:17,813 DEBUG   SenderThread:99126 [sender.py:send():176] send: run
+2021-05-26 16:14:18,062 INFO    SenderThread:99126 [dir_watcher.py:__init__():168] watching files in: /Users/simone/UniBO/Lab/RL/RL/wandb/run-20210526_161416-1go188dm/files
+2021-05-26 16:14:18,062 INFO    SenderThread:99126 [sender.py:_start_run_threads():696] run started: 1go188dm with start time 1622038456
+2021-05-26 16:14:18,063 DEBUG   SenderThread:99126 [sender.py:send():176] send: summary
+2021-05-26 16:14:18,063 INFO    SenderThread:99126 [sender.py:_save_file():821] saving file wandb-summary.json with policy end
+2021-05-26 16:14:18,063 DEBUG   HandlerThread:99126 [handler.py:handle_request():121] handle_request: run_start
+2021-05-26 16:14:19,259 INFO    Thread-8  :99126 [dir_watcher.py:_on_file_created():216] file/dir created: /Users/simone/UniBO/Lab/RL/RL/wandb/run-20210526_161416-1go188dm/files/wandb-summary.json
+2021-05-26 16:14:21,572 DEBUG   HandlerThread:99126 [meta.py:__init__():39] meta init
+2021-05-26 16:14:21,572 DEBUG   HandlerThread:99126 [meta.py:__init__():53] meta init done
+2021-05-26 16:14:21,572 DEBUG   HandlerThread:99126 [meta.py:probe():210] probe
+2021-05-26 16:14:21,574 DEBUG   HandlerThread:99126 [meta.py:_setup_git():200] setup git
+2021-05-26 16:14:21,618 DEBUG   HandlerThread:99126 [meta.py:_setup_git():207] setup git done
+2021-05-26 16:14:21,618 DEBUG   HandlerThread:99126 [meta.py:_save_pip():57] save pip
+2021-05-26 16:14:21,619 DEBUG   HandlerThread:99126 [meta.py:_save_pip():71] save pip done
+2021-05-26 16:14:21,619 DEBUG   HandlerThread:99126 [meta.py:_save_conda():78] save conda
+2021-05-26 16:14:22,300 INFO    Thread-8  :99126 [dir_watcher.py:_on_file_created():216] file/dir created: /Users/simone/UniBO/Lab/RL/RL/wandb/run-20210526_161416-1go188dm/files/conda-environment.yaml
+2021-05-26 16:14:22,300 INFO    Thread-8  :99126 [dir_watcher.py:_on_file_created():216] file/dir created: /Users/simone/UniBO/Lab/RL/RL/wandb/run-20210526_161416-1go188dm/files/requirements.txt
+2021-05-26 16:14:23,304 INFO    Thread-8  :99126 [dir_watcher.py:_on_file_created():216] file/dir created: /Users/simone/UniBO/Lab/RL/RL/wandb/run-20210526_161416-1go188dm/files/output.log
+2021-05-26 16:14:28,323 INFO    Thread-8  :99126 [dir_watcher.py:_on_file_modified():229] file/dir modified: /Users/simone/UniBO/Lab/RL/RL/wandb/run-20210526_161416-1go188dm/files/conda-environment.yaml
+2021-05-26 16:14:28,560 DEBUG   HandlerThread:99126 [meta.py:_save_conda():86] save conda done
+2021-05-26 16:14:28,560 DEBUG   HandlerThread:99126 [meta.py:probe():252] probe done
+2021-05-26 16:14:28,567 DEBUG   HandlerThread:99126 [handler.py:handle_request():121] handle_request: stop_status
+2021-05-26 16:14:28,568 DEBUG   SenderThread:99126 [sender.py:send_request():186] send_request: stop_status
+2021-05-26 16:14:28,780 DEBUG   SenderThread:99126 [sender.py:send():176] send: files
+2021-05-26 16:14:28,785 INFO    SenderThread:99126 [sender.py:_save_file():821] saving file wandb-metadata.json with policy now
+2021-05-26 16:14:29,324 INFO    Thread-8  :99126 [dir_watcher.py:_on_file_created():216] file/dir created: /Users/simone/UniBO/Lab/RL/RL/wandb/run-20210526_161416-1go188dm/files/wandb-metadata.json
+2021-05-26 16:14:29,428 INFO    Thread-11 :99126 [upload_job.py:push():133] Uploaded file /var/folders/q9/pjb90yf52j38qcfsync8wf0c0000gn/T/tmpftgsn16rwandb/2gxzb1p2-wandb-metadata.json
+2021-05-26 16:14:43,805 DEBUG   HandlerThread:99126 [handler.py:handle_request():121] handle_request: stop_status
+2021-05-26 16:14:43,806 DEBUG   SenderThread:99126 [sender.py:send_request():186] send_request: stop_status
+2021-05-26 16:14:50,423 DEBUG   SenderThread:99126 [sender.py:send():176] send: stats
+2021-05-26 16:14:59,039 DEBUG   HandlerThread:99126 [handler.py:handle_request():121] handle_request: stop_status
+2021-05-26 16:14:59,039 DEBUG   SenderThread:99126 [sender.py:send_request():186] send_request: stop_status
+2021-05-26 16:15:14,326 DEBUG   HandlerThread:99126 [handler.py:handle_request():121] handle_request: stop_status
+2021-05-26 16:15:14,327 DEBUG   SenderThread:99126 [sender.py:send_request():186] send_request: stop_status
+2021-05-26 16:15:21,269 DEBUG   SenderThread:99126 [sender.py:send():176] send: stats
+2021-05-26 16:15:29,540 DEBUG   HandlerThread:99126 [handler.py:handle_request():121] handle_request: stop_status
+2021-05-26 16:15:29,540 DEBUG   SenderThread:99126 [sender.py:send_request():186] send_request: stop_status
+2021-05-26 16:15:44,767 DEBUG   HandlerThread:99126 [handler.py:handle_request():121] handle_request: stop_status
+2021-05-26 16:15:44,768 DEBUG   SenderThread:99126 [sender.py:send_request():186] send_request: stop_status
+2021-05-26 16:15:48,034 WARNING MainThread:99126 [internal.py:wandb_internal():147] Internal process interrupt: 1
+2021-05-26 16:15:52,120 DEBUG   SenderThread:99126 [sender.py:send():176] send: stats
+2021-05-26 16:15:56,058 WARNING MainThread:99126 [internal.py:is_dead():366] Internal process exiting, parent pid 99113 disappeared
+2021-05-26 16:15:56,058 ERROR   MainThread:99126 [internal.py:wandb_internal():143] Internal process shutdown.
+2021-05-26 16:15:56,132 INFO    WriterThread:99126 [datastore.py:close():258] close: /Users/simone/UniBO/Lab/RL/RL/wandb/run-20210526_161416-1go188dm/run-1go188dm.wandb
+2021-05-26 16:15:56,132 INFO    SenderThread:99126 [sender.py:finish():925] shutting down sender
+2021-05-26 16:15:56,132 INFO    HandlerThread:99126 [handler.py:finish():632] shutting down handler
+2021-05-26 16:15:56,133 INFO    SenderThread:99126 [dir_watcher.py:finish():282] shutting down directory watcher
+2021-05-26 16:15:56,627 INFO    SenderThread:99126 [dir_watcher.py:finish():312] scan: /Users/simone/UniBO/Lab/RL/RL/wandb/run-20210526_161416-1go188dm/files
+2021-05-26 16:15:56,627 INFO    SenderThread:99126 [dir_watcher.py:finish():318] scan save: /Users/simone/UniBO/Lab/RL/RL/wandb/run-20210526_161416-1go188dm/files/requirements.txt requirements.txt
+2021-05-26 16:15:56,627 INFO    SenderThread:99126 [dir_watcher.py:finish():318] scan save: /Users/simone/UniBO/Lab/RL/RL/wandb/run-20210526_161416-1go188dm/files/output.log output.log
+2021-05-26 16:15:56,631 INFO    SenderThread:99126 [dir_watcher.py:finish():318] scan save: /Users/simone/UniBO/Lab/RL/RL/wandb/run-20210526_161416-1go188dm/files/config.yaml config.yaml
+2021-05-26 16:15:56,632 INFO    SenderThread:99126 [dir_watcher.py:finish():318] scan save: /Users/simone/UniBO/Lab/RL/RL/wandb/run-20210526_161416-1go188dm/files/wandb-summary.json wandb-summary.json
+2021-05-26 16:15:56,637 INFO    SenderThread:99126 [dir_watcher.py:finish():318] scan save: /Users/simone/UniBO/Lab/RL/RL/wandb/run-20210526_161416-1go188dm/files/conda-environment.yaml conda-environment.yaml
+2021-05-26 16:15:56,645 INFO    SenderThread:99126 [dir_watcher.py:finish():318] scan save: /Users/simone/UniBO/Lab/RL/RL/wandb/run-20210526_161416-1go188dm/files/wandb-metadata.json wandb-metadata.json
+2021-05-26 16:15:56,646 INFO    SenderThread:99126 [file_pusher.py:finish():176] shutting down file pusher
+2021-05-26 16:15:56,647 INFO    SenderThread:99126 [file_pusher.py:join():181] waiting for file pusher
+2021-05-26 16:15:57,262 INFO    Thread-15 :99126 [upload_job.py:push():133] Uploaded file /Users/simone/UniBO/Lab/RL/RL/wandb/run-20210526_161416-1go188dm/files/conda-environment.yaml
+2021-05-26 16:15:57,272 INFO    Thread-14 :99126 [upload_job.py:push():133] Uploaded file /Users/simone/UniBO/Lab/RL/RL/wandb/run-20210526_161416-1go188dm/files/wandb-summary.json
+2021-05-26 16:15:57,275 INFO    Thread-13 :99126 [upload_job.py:push():133] Uploaded file /Users/simone/UniBO/Lab/RL/RL/wandb/run-20210526_161416-1go188dm/files/config.yaml
+2021-05-26 16:15:57,293 INFO    Thread-12 :99126 [upload_job.py:push():133] Uploaded file /Users/simone/UniBO/Lab/RL/RL/wandb/run-20210526_161416-1go188dm/files/requirements.txt
+2021-05-26 16:15:57,811 INFO    MainThread:99126 [internal.py:handle_exit():78] Internal process exited

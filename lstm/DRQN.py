@@ -3,7 +3,7 @@ from dqn.replay_buffer import ExpReplay
 import numpy as np
 
 
-class CDDQN(tf.keras.Model):
+class DRQN(tf.keras.Model):
     """Implementation based on https://towardsdatascience.com/dueling-double-deep-q-learning-using-tensorflow-2-x-7bbbcec06a2a"""
 
     def __init__(self, actions, batch_size, input_shape):
@@ -12,7 +12,7 @@ class CDDQN(tf.keras.Model):
         Args:
             actions (int): Number of actions
         """
-        super(CDDQN, self).__init__()
+        super(DRQN, self).__init__()
         self.actions = actions
         # TODO: Take a look here, they used LTSM to solve some known problems
         #       https://medium.com/emergent-future/simple-reinforcement-learning-with-tensorflow-part-8-asynchronous-actor-critic-agents-a3c-c88f72a5e9f2
@@ -22,14 +22,14 @@ class CDDQN(tf.keras.Model):
         #       about agent movements
 
         self.data_input_shape = (1, *input_shape)
-        print(self.data_input_shape)
-
+        self.lstm = tf.keras.layers.LSTM(100)
+        self.reshape = tf.keras.layers.Reshape(self.data_input_shape)
         self.c1 = tf.keras.layers.Conv2D(32,
                                          8,
                                          strides=(4, 4),
                                          padding="same",
                                          activation="relu",
-                                         input_shape=self.data_input_shape,
+                                         #input_shape=self.data_input_shape,
                                          )
         self.c2 = tf.keras.layers.Conv2D(64,
                                          4,
@@ -65,7 +65,9 @@ class CDDQN(tf.keras.Model):
         Returns:
             np.array: Q-value estimate for each action
         """
-        x = self.c1(input_data)
+        x = self.lstm(input_data)
+        x = self.reshape(x)
+        x = self.c1(x)
         x = self.c2(x)
         x = self.c3(x)
         x = self.flatten(x)
@@ -84,7 +86,9 @@ class CDDQN(tf.keras.Model):
         Returns:
             np.array: Estimate advantage per each action
         """
-        x = self.c1(state)
+        x = self.lstm(state)
+        x = self.reshape(x)
+        x = self.c1(x)
         x = self.c2(x)
         x = self.c3(x)
         x = self.flatten(x)
@@ -128,8 +132,8 @@ class Agent():
         self.loss = np.zeros((self.batch_size))
 
         # Deep network creation
-        self.q_net = CDDQN(self.actions, self.batch_size, observation_shape)
-        self.target_net = CDDQN(self.actions, self.batch_size, observation_shape)
+        self.q_net = DRQN(self.actions, self.batch_size, observation_shape)
+        self.target_net = DRQN(self.actions, self.batch_size, observation_shape)
         opt = tf.keras.optimizers.Adam(learning_rate=lr)
         self.q_net.compile(loss='mse', optimizer=opt)
         self.target_net.compile(loss='mse', optimizer=opt)
