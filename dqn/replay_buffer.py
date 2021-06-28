@@ -47,7 +47,6 @@ class ExpReplay():
         self.reward_mem[idx] = reward
         self.next_state_mem[idx] = next_state
 
-        # TODO: Why 1 - int(done)?
         self.done_mem[idx] = 1 - int(done)
 
         self.pointer += 1
