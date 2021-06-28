@@ -14,12 +14,6 @@ class DDDQN(tf.keras.Model):
         """
         super(DDDQN, self).__init__()
         self.actions = actions
-        # TODO: Take a look here, they used LTSM to solve some known problems
-        #       https://medium.com/emergent-future/simple-reinforcement-learning-with-tensorflow-part-8-asynchronous-actor-critic-agents-a3c-c88f72a5e9f2
-        # TODO: Note that we should handle things a little differently, its probably better to exploit Convolutions
-        #       and also give to the network more than one observation at time. For the atari environment (the one used
-        #       to highlight the power of DQN) they gave to the network multiple frames so that the network could learn
-        #       about agent movements
 
         self.d1 = tf.keras.layers.Dense(128, activation="relu")
         self.d2 = tf.keras.layers.Dense(128, activation="relu")
@@ -170,15 +164,10 @@ class Agent():
             batch_index = np.arange(self.batch_size, dtype=np.int32)
 
             # update estimates of q-values based on next state estimate
-            # TODO: Why do we need the `* dones` bit? Do we actually need it?
             q_target = np.copy(target)
             q_target[batch_index, actions] = rewards + self.gamma * \
                 next_state_val[batch_index, max_action] * dones
 
-            # TEchnically, q_target is our real value, while target is the predicted one. So, target-q_target should be a good estimate of loss.
-            # Is this loss?
-            # Is this loss?
-            # train the network
             self.memory.losses[batch] = self.q_net.train_on_batch(states, q_target)
             self.update_epsilon()
             self.trainstep += 1
