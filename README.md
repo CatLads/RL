@@ -4,7 +4,7 @@ This repository contains all the Reinforcement Learning work done for the **Flat
 
 ## Project structure
 
-This project needs the custom observations found in the [CatLads/Observations](https://github.com/CatLads/Observations) repository, so remember to install that. In the `dqn` and `lstm` folders, you can find several algorithms/methods to train a reinforcement learning agent for the Flatlands challenge.
+This project needs the custom observations found in the [CatLads/Observations](https://github.com/CatLads/Observations) repository, so remember to install that. In the `dqn` folder, you can find several algorithms/methods to train a reinforcement learning agent for the Flatlands challenge.
 WandB was added to the project, meaning that you can use the platform to automate and customize the training.
 
 ## Installation and usage
