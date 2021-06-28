@@ -7,11 +7,12 @@ import numpy as np
 
 config_object = ConfigParser()
 
+
 class Agent():
     """Based on https://towardsdatascience.com/dueling-double-deep-q-learning-using-tensorflow-2-x-7bbbcec06a2a"""
 
-    def __init__(self, observation_shape, actions, grid_shape, gamma=0.99, replace=100, lr=0.001, 
-                 epsilon_decay=1e-3, decay_type="flat", initial_epsilon=1.0, min_epsilon=0.01, 
+    def __init__(self, observation_shape, actions, grid_shape, gamma=0.99, replace=100, lr=0.001,
+                 epsilon_decay=1e-3, decay_type="flat", initial_epsilon=1.0, min_epsilon=0.01,
                  batch_size=64, method="DDDQN"):
         """Create a DDQN agent.
 
@@ -45,8 +46,10 @@ class Agent():
         self.epsilon_decay = epsilon_decay
         self.replace = replace
         self.batch_size = batch_size
-        self.decay_type = decay_type.lower() if decay_type.lower() in ["flat", "smooth"] else "flat"
-        self.method = method.lower() if method.lower() in ["dddqn", "cdddqn"] else "dddqn"
+        self.decay_type = decay_type.lower() if decay_type.lower() in [
+            "flat", "smooth"] else "flat"
+        self.method = method.lower() if method.lower() in [
+            "dddqn", "cdddqn"] else "dddqn"
 
         self.trainstep = 0
 
@@ -59,8 +62,8 @@ class Agent():
             self.target_net = CDDDQN(self.actions, self.grid_shape)
 
         opt = tf.keras.optimizers.Adam(learning_rate=lr)
-        self.q_net.compile(loss='mse', optimizer=opt)
-        self.target_net.compile(loss='mse', optimizer=opt)
+        self.q_net.compile(loss="mse", optimizer=opt)
+        self.target_net.compile(loss="mse", optimizer=opt)
 
     def act(self, state, legal_moves):
         """Returns the action which is going to be taken using epsilon-greedy algorithm
@@ -76,14 +79,19 @@ class Agent():
         action = None
 
         if np.random.rand() <= self.epsilon:
+            # exploit numpy's probability feature to select only legal moves
             probabilities = legal_moves/(np.sum(legal_moves))
-            action = np.random.choice(list(range(self.actions)), p=probabilities)
+            action = np.random.choice(list(range(self.actions)),
+                                      p=probabilities)
         else:
-            # FIXME: Why np.array([state])?
+            # keras model expects at least 2D data
             actions = self.q_net.advantage(np.array([state]))
+            # extract actions and mask illegal action by setting the q-value low
             actions = actions.numpy()[0]
             actions[legal_moves == 0] = -1e4
+            # select the best action
             action = np.argmax(actions)
+
         return action
 
     def update_mem(self, state, action, reward, next_state, done):
@@ -114,10 +122,10 @@ class Agent():
         }
 
         if self.epsilon > self.min_epsilon:
-            self.epsilon = decay_fn[self.decay_type](self.epsilon)  
+            self.epsilon = decay_fn[self.decay_type](self.epsilon)
         else:
             self.epsilon = self.min_epsilon
-        
+
         return self.epsilon
 
     def train(self):
@@ -136,16 +144,18 @@ class Agent():
             next_state_val = self.target_net.predict(next_states)
             # best action for next state
             max_action = np.argmax(self.q_net.predict(next_states), axis=1)
+           
+            # build indexes for all predicted q-values
             batch_index = np.arange(self.batch_size, dtype=np.int32)
 
-            # update estimates of q-values based on next state estimate
-            # FIXME: Why do we need the `* dones` bit? Do we actually need it?
+            # update estimates of q-values on the targetnet based on qnet estimation
             q_target = np.copy(target)
             q_target[batch_index, actions] = rewards + self.gamma * \
-                                             next_state_val[batch_index, max_action] * dones
+                next_state_val[batch_index, max_action] * dones
 
-            # train the network
-            self.memory.losses[batch] = self.q_net.train_on_batch(states, q_target)
+            # train network and set losses on the experience replay
+            self.memory.losses[batch] = self.q_net.train_on_batch(
+                states, q_target)
 
             self.update_epsilon()
             self.trainstep += 1
@@ -154,11 +164,7 @@ class Agent():
             pass
 
     def save_model(self):
-        """Save the network models
-
-        Args:
-            name (str, optional): Prefix to each model. Defaults to "DDDQN".
-        """
+        """Save the network models"""
         self.q_net.save_weights("%s_qnet_model" % self.method)
         self.target_net.save_weights("%s_targetnet_model" % self.method)
 
@@ -182,16 +188,15 @@ class Agent():
         """Load local weights"""
         self.q_net.load_weights("%s_qnet_model" % self.method)
         self.target_net.load_weights("%s_targetnet_model" % self.method)
-        
+
         # load hyperparameters
         config = config_object.read("%s_config.ini" % self.method)["CONFIG"]
         self.gamma = config["gamma"]
-        self.epsilon = config["epsilon"]
         self.min_epsilon = config["min_epsilon"]
         self.epsilon_decay = config["epsilon_decay"]
         self.replace = config["replace"]
         self.batch_size = config["batch_size"]
         self.decay_type = config["decay_type"]
         self.method = config["method"]
-        
+
         print("model loaded")

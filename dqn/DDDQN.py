@@ -2,8 +2,6 @@ import tensorflow as tf
 import numpy as np
 from tensorflow.compat.v1 import ConfigProto
 from tensorflow.compat.v1 import InteractiveSession
-from configparser import ConfigParser
-
 
 config = ConfigProto()
 config.gpu_options.allow_growth = True
@@ -20,12 +18,6 @@ class DDDQN(tf.keras.Model):
         """
         super(DDDQN, self).__init__()
         self.actions = actions
-        # TODO: Take a look here, they used LTSM to solve some known problems
-        #       https://medium.com/emergent-future/simple-reinforcement-learning-with-tensorflow-part-8-asynchronous-actor-critic-agents-a3c-c88f72a5e9f2
-        # TODO: Note that we should handle things a little differently, its probably better to exploit Convolutions
-        #       and also give to the network more than one observation at time. For the atari environment (the one used
-        #       to highlight the power of DQN) they gave to the network multiple frames so that the network could learn
-        #       about agent movements
         self.network_setup()
 
     def network_setup(self):
